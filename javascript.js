@@ -56,7 +56,7 @@ function updateSGTTime() {
     if ((currentMinute === 0 || currentMinute === 30) && currentMinute !== lastAlarmMinute) {
         triggerAlarm();
         lastAlarmMinute = currentMinute;
-    }
+    }    
 
     // Update text color based on water level
     updateTextColors();
@@ -245,11 +245,12 @@ function init() {
     fetchQuote();
     window.addEventListener('resize', updateTextColors);
 
-    document.body.addEventListener('click', () => {
-        if (alarmCount < 12) {
-            triggerAlarm();
-        }
-    });
+//   document.body.addEventListener('click', () => {
+//        if (alarmCount < 12) {
+//            triggerAlarm();
+//        }
+//    });
+
 }
 
 window.addEventListener('load', init);
