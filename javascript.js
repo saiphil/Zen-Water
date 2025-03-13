@@ -48,6 +48,9 @@ function updateSGTTime() {
     const period = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12 || 12; // Convert 0 (midnight) and 12 (noon) correctly
 
+     // Change background based on time of day
+     changeBackground(sgtTime.getUTCHours());
+
     // Update the time display
     timeElement.textContent = `${hours}:${minutes}:${seconds} ${period}`;
 
@@ -61,6 +64,28 @@ function updateSGTTime() {
     // Update text color based on water level
     updateTextColors();
 }
+
+// Function to change background color based on time
+function changeBackground(hour) {
+    const body = document.body;
+
+    if (hour >= 6 && hour < 16) {
+        // Morning - Afternoon (6AM - 4PM)
+        body.style.backgroundColor = "#ffffff"; // White
+    } else if (hour >= 16 && hour < 18) {
+        // Evening (4PM - 6PM)
+        body.style.backgroundColor = "#ffedd5"; // Warm white
+    } else {
+        // Night (6PM - 6AM)
+        body.style.backgroundColor = "#1e293b"; // Dark
+    }
+}
+
+// Run background update on load
+window.addEventListener('load', () => {
+    updateSGTTime();
+    setInterval(updateSGTTime, 1000);
+});
 
 // Function to trigger the alarm
 function triggerAlarm() {
