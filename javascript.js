@@ -290,7 +290,7 @@ function init() {
 //            triggerAlarm();
 //        }
 //    });
-
+//
 }
 
 window.addEventListener('load', init);

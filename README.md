@@ -40,4 +40,4 @@ Zen Water is a web-based application designed to help you track your daily water
 
 Stay hydrated & healthy! 💧🥤
 
-**Made with 💛 by SAIII**
+**Made with 💛 by NORYS**
