@@ -108,7 +108,7 @@ body {
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* Internet Explorer/Edge */
     position: fixed;
-    top: 85px; /* Keep it high */
+    top: 80px; /* Keep it high */
     background-color: rgb(11, 186, 255);
     color: white;
     padding: 15px 30px;

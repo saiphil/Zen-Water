@@ -10,10 +10,23 @@ const bubblesContainer = document.getElementById('bubbles-container');
 let alarmCount = parseInt(localStorage.getItem('alarmCount')) || 0;
 let lastAlarmMinute = -1;
 let waterHeight = parseFloat(localStorage.getItem('waterHeight')) || 0;
+let lastCheckedDate = new Date().getUTCDate(); // Track the last checked date
 let lastFetchedQuote = JSON.parse(localStorage.getItem('lastFetchedQuote')) || { 
     text: "Time is the most valuable thing a man can spend.", 
     author: "Theophrastus" 
 };
+
+function checkForMidnightReset() {
+    const currentDate = new Date().getUTCDate(); // Get today's date
+
+    if (currentDate !== lastCheckedDate) {
+        // The day has changed → Reset progress
+        resetProgress();
+        lastCheckedDate = currentDate; // Update the last checked date
+        console.log("🌙 Midnight reset completed! Progress has been reset.");
+    }
+}
+
 
 // Request notification permission on page load
 function requestNotificationPermission() {
@@ -262,11 +275,13 @@ function sendNotification(title, message) {
     }
 }
 
+
 // Initialize the app
 function init() {
     restoreProgress();
     updateSGTTime();
     setInterval(updateSGTTime, 1000);
+    setInterval(checkForMidnightReset, 60000); // Check for midnight reset every minute
     fetchQuote();
     window.addEventListener('resize', updateTextColors);
 

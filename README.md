@@ -21,7 +21,7 @@ Zen Water is a web-based application designed to help you track your daily water
 3. **Wait for Alerts** – Every 30 minutes, a sound & message will notify you.
 4. **Monitor Water Level** – The water rises as you drink.
 5. **Hit the Goal!** – 12 reminders complete your daily intake.
-6. **Reset Automatically** – The tracker resets after reaching 12 alerts or manually via the reset button.
+6. **Reset Automatically** – The tracker resets after reaching 12 alerts or after midnight.
 
 ---
 
