@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuchu Water Reminder</title>
+    <link rel="stylesheet" href="./design.css">
+    <script src="./javascript.js" defer></script>
+</head>
+
+<body>
+    
+    
+    <div id="water-container">
+        <div class="waves">
+            <div class="wave wave1"></div>
+            <div class="wave wave2"></div>
+            <div class="wave wave3"></div>
+        </div>
+        <div class="bubbles" id="bubbles-container"></div>
+    </div>
+    
+    <div id="alert-message" style="display: none;">TIME TO DRINK WATER, CHUCHU!!!</div>
+    
+    <div id="time-container">
+        <div id="time">00:00:00</div>
+        <div id="counter">Water Intake Today: 0/12</div>
+    </div>
+    
+    <div id="quote-container">
+        <div id="quote">Loading a motivational quote...</div>
+        <div id="author"></div>
+    </div>
+    
+    
+
+    <audio id="alarm-sound" src="./source/notif.wav"></audio>
+    
+
+</body>
+</html>
