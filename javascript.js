@@ -43,11 +43,16 @@ window.addEventListener('load', requestNotificationPermission);
 // Restore UI state
 function restoreProgress() {
     counterElement.textContent = `Alarms: ${alarmCount}/12`;
+    waterContainer.style.transition = "height 2s ease-out";
+    setTimeout(() => {
+    waterContainer.style.transition = 'height 2s ease-out';
     waterContainer.style.height = `${waterHeight}vh`;
+}, 50);
     quoteElement.textContent = lastFetchedQuote.text;
     authorElement.textContent = lastFetchedQuote.author ? `- ${lastFetchedQuote.author}` : "";
 }
 
+// 1. Updated time display function to include leading zeros for hours
 function updateSGTTime() {
     const now = new Date();
     // SGT is UTC+8
@@ -60,12 +65,15 @@ function updateSGTTime() {
     // Convert to 12-hour format
     const period = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12 || 12; // Convert 0 (midnight) and 12 (noon) correctly
+    
+    // Add leading zero to hours if single digit
+    const hoursFormatted = hours.toString().padStart(2, '0');
 
-     // Change background based on time of day
-     changeBackground(sgtTime.getUTCHours());
+    // Change background based on time of day
+    changeBackground(sgtTime.getUTCHours());
 
     // Update the time display
-    timeElement.textContent = `${hours}:${minutes}:${seconds} ${period}`;
+    timeElement.textContent = `${hoursFormatted}:${minutes}:${seconds} ${period}`;
 
     // Check for alarm (every 30 minutes)
     const currentMinute = sgtTime.getUTCMinutes();
@@ -74,23 +82,47 @@ function updateSGTTime() {
         lastAlarmMinute = currentMinute;
     }    
 
-    // Update text color based on water level
+    // Update text colors based on water level
     updateTextColors();
 }
 
-// Function to change background color based on time
+// 2. Enhanced background color based on time
 function changeBackground(hour) {
     const body = document.body;
+    let targetColor;
 
-    if (hour >= 6 && hour < 16) {
-        // Morning - Afternoon (6AM - 4PM)
-        body.style.backgroundColor = "#ffffff"; // White
-    } else if (hour >= 16 && hour < 18) {
-        // Evening (4PM - 6PM)
-        body.style.backgroundColor = "#ffedd5"; // Warm white
+    if (hour >= 6 && hour < 12) {
+        // Morning (6AM - 12PM)
+        targetColor = "#F8B595";
+        updateWelcomeMessage("Good Morning.");
+    } else if (hour >= 12 && hour < 18) {
+        // Afternoon (12PM - 6PM)
+        targetColor = "#F67280";
+        updateWelcomeMessage("Good Afternoon.");
+    } else if (hour >= 18 && hour < 21) {
+        // Evening (6PM - 9PM)
+        targetColor = "#C06C84";
+        updateWelcomeMessage("Good Evening.");
+    } else if (hour >= 21 && hour < 24) {
+        // Night (9PM - 12AM)
+        targetColor = "#6C5B7C";
+        updateWelcomeMessage("Time to Rest.");
     } else {
-        // Night (6PM - 6AM)
-        body.style.backgroundColor = "#1e293b"; // Dark
+        // Late Night (12AM - 6AM)
+        targetColor = "#355C7D";
+        updateWelcomeMessage("Sleep Well.");
+    }
+
+    // Smooth transition to new color
+    body.style.transition = "background-color 2s ease";
+    body.style.backgroundColor = targetColor;
+}
+
+// 3. Function to update welcome message based on time
+function updateWelcomeMessage(message) {
+    const welcomeMessage = document.getElementById('welcome-message');
+    if (welcomeMessage) {
+        welcomeMessage.textContent = message;
     }
 }
 
@@ -103,6 +135,10 @@ window.addEventListener('load', () => {
 // Function to trigger the alarm
 function triggerAlarm() {
     if (alarmCount < 12) {
+        // Reset when it reaches 12 alarms
+        if (alarmCount + 1 === 12) {
+            setTimeout(resetProgress, 5000);
+        }
         const alarmSound = document.getElementById('alarm-sound');
 
         // Loop the alarm sound for 5 seconds
@@ -121,12 +157,22 @@ function triggerAlarm() {
         waterHeight = (alarmCount / 12) * 100;
 
         counterElement.textContent = `Alarms: ${alarmCount}/12`;
-        waterContainer.style.height = `${waterHeight}vh`;
+        setTimeout(() => {
+    waterContainer.style.transition = 'height 2s ease-out';
+    waterContainer.style.height = `${waterHeight}vh`;
+}, 50);
         // Save progress
         localStorage.setItem('alarmCount', alarmCount);
         localStorage.setItem('waterHeight', waterHeight);
 
-        createBubbles(15);
+        requestAnimationFrame(() => { createBubbles(10);
+
+document.querySelectorAll('.wave').forEach(wave => {
+    wave.style.animation = "none"; // Reset animation
+    void wave.offsetWidth; // Force browser to reprocess it
+    wave.style.animation = ""; // Restore animation
+});
+ });
         fetchQuote();
 
         // Show alert message
@@ -151,7 +197,7 @@ function triggerAlarm() {
     }
 }
 
-// Function to reset progress
+// 4. Fixed reset progress function to use "Water Intake Today" label
 function resetProgress() {
     alarmCount = 0;
     waterHeight = 0;
@@ -159,7 +205,7 @@ function resetProgress() {
     // Reset UI smoothly
     waterContainer.style.transition = "height 2s ease-out";
     waterContainer.style.height = "0vh";
-    counterElement.textContent = "Water Intake Today: 0/12";;
+    counterElement.textContent = "Water Intake Today: 0/12";
 
     // Clear stored data
     localStorage.removeItem('alarmCount');
@@ -170,7 +216,6 @@ function resetProgress() {
 
     console.log("Progress and localStorage have been reset.");
 }
-
 
 // Function to create bubbles
 function createBubbles(count) {
@@ -264,33 +309,178 @@ function updateTextColors() {
     }
 }
 
-function sendNotification(title, message) {
-    if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(title, {
-            body: message,
-            icon: "https://cdn-icons-png.flaticon.com/512/883/883746.png" // Optional icon
-        });
-    } else {
-        console.log("Notifications are blocked or not supported.");
+// 5. Improved notification permission handling
+function handleNotificationPermission() {
+    if ("Notification" in window) {
+        // Check if permission was previously asked
+        const notificationStatus = localStorage.getItem('notificationPermission');
+        
+        if (notificationStatus === 'granted') {
+            console.log("Notifications already permitted");
+            return;
+        } else if (notificationStatus === 'denied' || notificationStatus === 'default') {
+            // Show notification permission button/popup
+            showNotificationPrompt();
+        } else {
+            // First time visitor
+            showNotificationPrompt();
+        }
     }
 }
 
+function showNotificationPrompt() {
+    const promptContainer = document.createElement('div');
+    promptContainer.id = 'notification-prompt';
+    promptContainer.innerHTML = `
+        <div class="notification-message">
+            <p>Enable notifications for water reminders?</p>
+            <div class="notification-buttons">
+                <button id="enable-notifications">Yes</button>
+                <button id="disable-notifications">No</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(promptContainer);
+    
+    document.getElementById('enable-notifications').addEventListener('click', function() {
+        Notification.requestPermission().then(permission => {
+            localStorage.setItem('notificationPermission', permission);
+            promptContainer.style.display = 'none';
+        });
+    });
+    
+    document.getElementById('disable-notifications').addEventListener('click', function() {
+        localStorage.setItem('notificationPermission', 'denied');
+        promptContainer.style.display = 'none';
+    });
+}
+
+// 6. Always show some bubbles for ambient effect
+function createAmbientBubbles() {
+    setInterval(() => {
+        createBubbles(1); // Create a single bubble every few seconds
+    }, 3000);
+}
+
+// 7. Added volume control
+function addVolumeControl() {
+    const volumeControl = document.createElement('div');
+    volumeControl.id = 'volume-control';
+    volumeControl.innerHTML = `
+        <div class="volume-icon">🔊</div>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
+    `;
+    document.body.appendChild(volumeControl);
+    
+    const volumeSlider = document.getElementById('volume-slider');
+    const volumeIcon = document.querySelector('.volume-icon');
+    
+    // Restore volume from localStorage or set default
+    const savedVolume = localStorage.getItem('volume') || 0.5;
+    volumeSlider.value = savedVolume;
+    alarmSound.volume = savedVolume;
+    
+    volumeSlider.addEventListener('input', function() {
+        alarmSound.volume = this.value;
+        localStorage.setItem('volume', this.value);
+        
+        // Update icon based on volume level
+        if (this.value == 0) {
+            volumeIcon.textContent = '🔇';
+        } else if (this.value < 0.5) {
+            volumeIcon.textContent = '🔉';
+        } else {
+            volumeIcon.textContent = '🔊';
+        }
+    });
+}
+
+// 8. Create splash screen
+function createSplashScreen() {
+    const splash = document.createElement('div');
+    splash.id = 'splash-screen';
+    
+    // Get current hour to set appropriate message and background
+    const now = new Date();
+    const sgtTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+    const hour = sgtTime.getUTCHours();
+    
+    let welcomeMessage = "Good Morning.";
+    let bgColor = "#F8B595";
+    
+    if (hour >= 12 && hour < 18) {
+        welcomeMessage = "Good Afternoon.";
+        bgColor = "#F67280";
+    } else if (hour >= 18 && hour < 21) {
+        welcomeMessage = "Good Evening.";
+        bgColor = "#C06C84";
+    } else if (hour >= 21 && hour < 24) {
+        welcomeMessage = "Time to Rest.";
+        bgColor = "#6C5B7C";
+    } else if (hour >= 0 && hour < 6) {
+        welcomeMessage = "Sleep Well.";
+        bgColor = "#355C7D";
+    }
+    
+    splash.style.backgroundColor = bgColor;
+    
+    splash.innerHTML = `
+        <div id="welcome-message">${welcomeMessage}</div>
+        <div id="app-name">zen_water</div>
+        <div id="creator">created by: pink_salamndr</div>
+    `;
+    
+    document.body.appendChild(splash);
+    
+    // Fade out splash screen after 5 seconds
+    setTimeout(() => {
+        splash.style.opacity = 0;
+        
+        // Remove splash after animation completes and show main content
+        setTimeout(() => {
+            splash.remove();
+            document.getElementById('time-container').style.opacity = 1;
+            document.getElementById('quote-container').style.opacity = 1;
+            if (waterHeight > 0) {
+                waterContainer.style.opacity = 1;
+            }
+        }, 1000);
+    }, 5000);
+}
 
 // Initialize the app
 function init() {
+    // Hide main content initially
+    document.getElementById('time-container').style.opacity = 0;
+    document.getElementById('quote-container').style.opacity = 0;
+    waterContainer.style.opacity = 0;
+    
+    // Show splash screen
+    createSplashScreen();
+    
+    // Initialize regular functionality
     restoreProgress();
     updateSGTTime();
     setInterval(updateSGTTime, 1000);
     setInterval(checkForMidnightReset, 60000); // Check for midnight reset every minute
     fetchQuote();
     window.addEventListener('resize', updateTextColors);
-
-//   document.body.addEventListener('click', () => {
-//        if (alarmCount < 12) {
-//            triggerAlarm();
-//        }
-//    });
-//
+    
+    // Add new functionality
+    handleNotificationPermission();
+    createAmbientBubbles();
+    addVolumeControl();
+    
+    // Fade in main content after splash screen
+    setTimeout(() => {
+        document.getElementById('time-container').style.transition = "opacity 1s ease";
+        document.getElementById('quote-container').style.transition = "opacity 1s ease";
+        waterContainer.style.transition = "opacity 1s ease";
+    }, 5000);
+    
+    document.body.addEventListener('click', () => {
+        triggerAlarm();
+    });
 }
 
 window.addEventListener('load', init);
