@@ -478,9 +478,9 @@ function init() {
         waterContainer.style.transition = "opacity 1s ease";
     }, 5000);
     
-    document.body.addEventListener('click', () => {
-        triggerAlarm();
-    });
+//    document.body.addEventListener('click', () => {
+//       triggerAlarm();
+//    });
 }
 
 window.addEventListener('load', init);
